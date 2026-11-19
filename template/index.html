@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101311">
+  <title>ENTRA | Network operations</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101311;
+      --panel: #171b18;
+      --panel-raised: #1d221e;
+      --line: #2a302b;
+      --muted: #89928a;
+      --text: #edf2eb;
+      --lime: #c5f36a;
+      --lime-dark: #202b12;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      background:
+        radial-gradient(ellipse at 74% -16%, rgba(166, 218, 91, .08), transparent 38rem),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, a { font: inherit; }
+    button:focus-visible, a:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+
+    .app-shell { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 2;
+      display: flex;
+      width: 244px;
+      flex-direction: column;
+      padding: 27px 17px 19px;
+      border-right: 1px solid var(--line);
+      background: rgba(17, 20, 18, .92);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 0 10px;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 720;
+      letter-spacing: .13em;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 29px;
+      height: 29px;
+      place-items: center;
+      border: 1px solid rgba(197, 243, 106, .38);
+      border-radius: 9px;
+      background: var(--lime-dark);
+      color: var(--lime);
+    }
+
+    .brand-mark svg { width: 17px; height: 17px; }
+    .side-label {
+      margin: 42px 10px 12px;
+      color: #697169;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .nav-link {
+      display: flex;
+      min-height: 41px;
+      align-items: center;
+      gap: 12px;
+      padding: 0 11px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      color: #9da69e;
+      text-decoration: none;
+    }
+
+    .nav-link svg { width: 16px; height: 16px; color: #879087; }
+    .nav-link.active {
+      border-color: #30392b;
+      background: #20251f;
+      color: var(--lime);
+    }
+    .nav-link.active svg { color: var(--lime); }
+
+    .sidebar-bottom { margin-top: auto; }
+    .workspace-card {
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #171a18;
+    }
+    .workspace-card small { display: block; margin-bottom: 8px; color: var(--muted); font-size: 11px; }
+    .workspace-name { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; }
+    .workspace-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 10px rgba(197, 243, 106, .5); }
+
+    .main { width: calc(100% - 244px); margin-left: 244px; }
+
+    .topbar {
+      display: flex;
+      min-height: 68px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 42px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .breadcrumbs { color: var(--muted); font-size: 12px; }
+    .breadcrumbs span { margin: 0 8px; color: #515951; }
+    .breadcrumbs strong { color: #dce2da; font-weight: 550; }
+    .topbar-right { display: flex; align-items: center; gap: 18px; }
+    .environment { color: var(--muted); font-size: 11px; }
+    .environment b { margin-left: 5px; color: #d9e1d7; font-weight: 550; }
+    .avatar {
+      display: grid;
+      width: 31px;
+      height: 31px;
+      place-items: center;
+      border: 1px solid #394139;
+      border-radius: 50%;
+      background: #232923;
+      color: #dce5d8;
+      font-size: 11px;
+      font-weight: 650;
+    }
+
+    .content { width: min(1180px, 100%); margin: 0 auto; padding: 43px 42px 64px; }
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 13px;
+      color: var(--lime);
+      font-size: 10px;
+      font-weight: 720;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .eyebrow-line { width: 17px; height: 1px; background: var(--lime); }
+
+    .page-heading {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 29px;
+    }
+    h1 { margin: 0; font-size: clamp(26px, 3vw, 35px); font-weight: 590; letter-spacing: -.045em; }
+    .subtitle { margin: 9px 0 0; color: var(--muted); font-size: 13px; }
+
+    .run-button {
+      display: inline-flex;
+      min-height: 42px;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 0 16px;
+      border: 1px solid var(--lime);
+      border-radius: 8px;
+      background: var(--lime);
+      color: #17200d;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      transition: background .16s ease, transform .16s ease;
+    }
+    .run-button:hover { transform: translateY(-1px); background: #d3fb84; }
+    .run-button:disabled { cursor: wait; opacity: .8; }
+    .run-button svg { width: 15px; height: 15px; }
+
+    .device-card {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 22px;
+      overflow: hidden;
+      padding: 25px 26px;
+      border: 1px solid #343b32;
+      border-radius: 12px;
+      background: linear-gradient(112deg, #1d241b 0%, #191d19 53%, #171a18 100%);
+    }
+    .device-card::after {
+      position: absolute;
+      top: -105px;
+      right: 93px;
+      width: 270px;
+      height: 270px;
+      border: 1px solid rgba(197, 243, 106, .075);
+      border-radius: 50%;
+      content: "";
+      box-shadow: 0 0 0 27px rgba(197, 243, 106, .025), 0 0 0 55px rgba(197, 243, 106, .018);
+      pointer-events: none;
+    }
+    .device-main, .device-state { position: relative; z-index: 1; }
+    .device-label { color: #98a393; font-size: 11px; }
+    .device-title-row { display: flex; flex-wrap: wrap; align-items: center; gap: 11px; margin: 10px 0 17px; }
+    h2 { margin: 0; font-size: 19px; font-weight: 590; letter-spacing: -.025em; }
+    .device-type {
+      padding: 4px 7px;
+      border: 1px solid #3c4639;
+      border-radius: 5px;
+      color: #b6c0b1;
+      font-family: var(--mono);
+      font-size: 10px;
+    }
+    .device-meta { display: flex; flex-wrap: wrap; gap: 23px; }
+    .meta-item { display: flex; align-items: center; gap: 7px; color: #b2bbb0; font-size: 11px; }
+    .meta-item svg { width: 14px; height: 14px; color: #849080; }
+    .meta-item code { color: #e1e9dd; font-family: var(--mono); font-size: 11px; }
+    .device-state { display: flex; align-items: flex-start; justify-content: flex-end; }
+    .state-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 9px;
+      border: 1px solid #394237;
+      border-radius: 20px;
+      background: rgba(21, 26, 19, .56);
+      color: #c6d1bf;
+      font-size: 10px;
+    }
+    .state-chip i { width: 6px; height: 6px; border-radius: 50%; background: #8cae65; }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 34px 0 15px;
+    }
+    .section-heading h3 { margin: 0; font-size: 14px; font-weight: 620; }
+    .section-note { color: var(--muted); font-size: 11px; }
+    .section-note code { color: #b9c3b6; font-family: var(--mono); font-size: 10px; }
+
+    .summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 13px; }
+    .summary-card {
+      min-height: 111px;
+      padding: 16px 17px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+    }
+    .summary-top { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 11px; }
+    .summary-icon { display: grid; width: 27px; height: 27px; place-items: center; border: 1px solid #303730; border-radius: 7px; color: #b4c09c; }
+    .summary-icon svg { width: 14px; height: 14px; }
+    .summary-value { margin-top: 12px; color: #e2e8df; font-family: var(--mono); font-size: 18px; letter-spacing: -.03em; }
+    .summary-value.pending { color: #727b72; }
+
+    .error-banner {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      padding: 12px 14px;
+      border: 1px solid #70403b;
+      border-radius: 8px;
+      background: #291a19;
+      color: #f0c2ba;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .error-banner strong { color: #ffd2c9; }
+
+    .results-list { display: grid; gap: 11px; }
+    .result-card { overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+    .result-header { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px 16px; }
+    .result-title { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .terminal-mark { display: grid; width: 27px; height: 27px; flex: 0 0 auto; place-items: center; border: 1px solid #303730; border-radius: 7px; color: var(--lime); }
+    .terminal-mark svg { width: 14px; height: 14px; }
+    .result-title code { overflow: hidden; color: #d8e0d5; font-family: var(--mono); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .result-tag { flex: 0 0 auto; color: #778177; font-size: 10px; }
+    .result-output {
+      overflow: auto;
+      max-height: 330px;
+      margin: 0;
+      padding: 15px 17px;
+      border-top: 1px solid #262c27;
+      background: #121513;
+      color: #aeb8ac;
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .empty-state {
+      display: flex;
+      min-height: 126px;
+      align-items: center;
+      gap: 14px;
+      padding: 22px;
+      border: 1px dashed #343b35;
+      border-radius: 10px;
+      background: rgba(23, 27, 24, .65);
+    }
+    .empty-icon { display: grid; width: 36px; height: 36px; flex: 0 0 auto; place-items: center; border: 1px solid #343e30; border-radius: 10px; background: #20271c; color: var(--lime); }
+    .empty-icon svg { width: 17px; height: 17px; }
+    .empty-state strong { display: block; margin-bottom: 5px; color: #dce3da; font-size: 12px; font-weight: 600; }
+    .empty-state p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .footer { margin-top: 31px; padding-top: 15px; border-top: 1px solid var(--line); color: #737d73; font-size: 10px; }
+
+    @media (max-width: 900px) {
+      .sidebar { width: 205px; }
+      .main { width: calc(100% - 205px); margin-left: 205px; }
+      .topbar { padding: 0 27px; }
+      .content { padding: 35px 27px 52px; }
+    }
+
+    @media (max-width: 680px) {
+      .sidebar { position: static; width: 100%; height: auto; flex-direction: row; align-items: center; justify-content: space-between; padding: 13px 17px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .brand { padding: 0; }
+      .side-label, .sidebar nav, .sidebar-bottom { display: none; }
+      .app-shell { display: block; }
+      .main { width: 100%; margin: 0; }
+      .topbar { min-height: 53px; padding: 0 18px; }
+      .environment { display: none; }
+      .content { padding: 29px 18px 42px; }
+      .page-heading { align-items: flex-start; flex-direction: column; gap: 18px; }
+      .run-button { width: 100%; }
+      .device-card { grid-template-columns: 1fr; padding: 20px; }
+      .device-state { position: absolute; top: 0; right: 0; }
+      .device-title-row { padding-right: 48px; }
+      .device-meta { gap: 12px 18px; }
+      .summary-grid { grid-template-columns: 1fr; gap: 9px; }
+      .summary-card { min-height: 88px; }
+      .summary-value { margin-top: 7px; }
+      .section-heading { align-items: flex-start; flex-direction: column; gap: 5px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Main navigation">
+      <a class="brand" href="#" aria-label="ENTRA home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 17.5 9.2 6.5h2.1l-5.2 11H4Zm7.2 0 5.2-11h2.1l-5.2 11h-2.1Zm5.3 0 3.5-7.4 1.1 2.3-2.4 5.1h-2.2Z" fill="currentColor"/></svg>
+        </span>
+        ENTRA
+      </a>
+      <div class="side-label">Workspace</div>
+      <nav>
+        <a class="nav-link active" href="#overview" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>
+          Overview
+        </a>
+        <a class="nav-link" href="#command-results">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg>
+          Command output
+        </a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="workspace-card">
+          <small>Active workspace</small>
+          <div class="workspace-name"><span class="workspace-dot"></span> Lab network</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="breadcrumbs">Devices <span>/</span> <strong>Router overview</strong></div>
+        <div class="topbar-right">
+          <div class="environment">Environment <b>Local lab</b></div>
+          <div class="avatar" aria-label="User">OP</div>
+        </div>
+      </header>
+
+      <div class="content" id="overview">
+        <div class="eyebrow"><span class="eyebrow-line"></span> Network operations</div>
+        <div class="page-heading">
+          <div>
+            <h1>Router overview</h1>
+            <p class="subtitle">Device details and the latest command output, collected on demand.</p>
+          </div>
+          <form method="post" id="diagnostics-form">
+            <button class="run-button" type="submit" id="run-button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.64 5.64l2.12 2.12m8.48 8.48 2.12 2.12m0-12.72-2.12 2.12m-8.48 8.48-2.12 2.12"/><circle cx="12" cy="12" r="4"/></svg>
+              <span>Run diagnostics</span>
+            </button>
+          </form>
+        </div>
+
+        <section class="device-card" aria-labelledby="device-title">
+          <div class="device-main">
+            <div class="device-label">Managed device</div>
+            <div class="device-title-row">
+              <h2 id="device-title">Edge router</h2>
+              <span class="device-type">Cisco IOS</span>
+            </div>
+            <div class="device-meta">
+              <div class="meta-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8.5"/><path d="M3.8 12h16.4M12 3.5c2.1 2.3 3.1 5.1 3.1 8.5s-1 6.2-3.1 8.5c-2.1-2.3-3.1-5.1-3.1-8.5s1-6.2 3.1-8.5Z"/></svg>
+                <span>Address</span><code>192.168.10.109</code>
+              </div>
+              <div class="meta-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3 4 7.5v9L12 21l8-4.5v-9L12 3Z"/><path d="m4.5 7.8 7.5 4.3 7.5-4.3M12 12v8.5"/></svg>
+                <span>Connection</span><code>Telnet :32770</code>
+              </div>
+            </div>
+          </div>
+          <div class="device-state">
+            <span class="state-chip"><i></i> {% if results %}Snapshot ready{% else %}Awaiting snapshot{% endif %}</span>
+          </div>
+        </section>
+
+        <section aria-labelledby="summary-heading">
+          <div class="section-heading">
+            <h3 id="summary-heading">Device summary</h3>
+            <span class="section-note">Populated after a diagnostics run</span>
+          </div>
+          <div class="summary-grid">
+            <article class="summary-card">
+              <div class="summary-top"><span>System information</span><span class="summary-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 8h6m-6 4h6m-6 4h3"/></svg></span></div>
+              <div class="summary-value {% if not results %}pending{% endif %}">{% if results %}Collected{% else %}Awaiting data{% endif %}</div>
+            </article>
+            <article class="summary-card">
+              <div class="summary-top"><span>Interfaces</span><span class="summary-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 8h6v8H4zM14 5h6v5h-6zM14 14h6v5h-6z"/><path d="M10 12h2.5M12.5 7.5V16"/></svg></span></div>
+              <div class="summary-value pending">—</div>
+            </article>
+            <article class="summary-card">
+              <div class="summary-top"><span>Configuration</span><span class="summary-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1" fill="currentColor" stroke="none"/></svg></span></div>
+              <div class="summary-value pending">—</div>
+            </article>
+          </div>
+        </section>
+
+        {% if error %}
+        <div class="error-banner" role="alert">
+          <strong>Diagnostics failed.</strong>
+          <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <section id="command-results" aria-labelledby="results-heading">
+          <div class="section-heading">
+            <h3 id="results-heading">Command results</h3>
+            <span class="section-note">Read-only commands <code>show version</code> · <code>show ip interface brief</code> · <code>show running-config</code></span>
+          </div>
+          {% if results %}
+          <div class="results-list">
+            {% for command, output in results.items() %}
+            <article class="result-card">
+              <div class="result-header">
+                <div class="result-title">
+                  <span class="terminal-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 7 5 5-5 5m7 0h7"/></svg></span>
+                  <code>{{ command }}</code>
+                </div>
+                <span class="result-tag">Completed</span>
+              </div>
+              <pre class="result-output">{{ output }}</pre>
+            </article>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="empty-state">
+            <span class="empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 18V6m0 12h16M8 15v-4m4 4V7m4 8v-6m4 6V9"/></svg></span>
+            <div>
+              <strong>No diagnostics collected yet</strong>
+              <p>Run diagnostics to retrieve system details, interface status, and the current configuration from this device.</p>
+            </div>
+          </div>
+          {% endif %}
+        </section>
+
+        <footer class="footer">ENTRA <span aria-hidden="true">·</span> Local network workspace</footer>
+      </div>
+    </main>
+  </div>
+  <script>
+    document.getElementById("diagnostics-form").addEventListener("submit", function () {
+      const button = document.getElementById("run-button");
+      button.disabled = true;
+      button.querySelector("span").textContent = "Connecting...";
+    });
+  </script>
+</body>
+</html>
